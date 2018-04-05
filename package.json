@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/graphcool/graphql-schema-transform.git"
+    "url": "git+https://github.com/pravinjpareekh/graphql-transform-schema.git"
   },
   "keywords": [
     "graphql",
@@ -39,6 +39,6 @@
     "@types/minimatch": "^3.0.1",
     "ava": "^0.23.0",
     "graphql-tools": "^2.6.1",
-    "typescript": "^2.5.2"
+    "typescript": "^2.8.1"
   }
 }
