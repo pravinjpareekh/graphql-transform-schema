@@ -112,8 +112,8 @@ function prepareRules(rules: Rules, schema: GraphQLSchema): Rules {
   )
 
   for (const fieldName of nonFalseFieldNames) {
-    const matchedRules = _.chain(rules)
-      .pickBy((val, key) => val !== false && minimatch(fieldName, key))
+    const matchedRules = _.chain([rules])
+      .pickBy((val, key) => val !== undefined && minimatch(fieldName, key))
       .values<Rule>()
       .value()
 
