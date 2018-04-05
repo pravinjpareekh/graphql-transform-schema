@@ -1,7 +1,7 @@
 import { GraphQLSchema, GraphQLObjectType, GraphQLResolveInfo, GraphQLFieldMap } from 'graphql'
 import * as minimatch from 'minimatch'
 import * as _ from 'lodash'
-import { fieldMapToFieldConfigMap } from './util'
+import { fieldMapToFieldConfigMap,fieldMapToFieldConfigMapForsubscribe } from './util'
 
 export type Resolver = (args: any) => Promise<any> | any
 export type ResolverMapper = ({ args: any, resolve: Resolver }) => Promise<any> | any
@@ -18,6 +18,7 @@ export function transformSchema(schema: GraphQLSchema, rules: Rules): GraphQLSch
   return new GraphQLSchema({
     query: prepareQueryType(schema, newRules),
     mutation: prepareMutationType(schema, newRules),
+    subscription: prepareSubscriptionType(schema, newRules),
   })
 }
 
@@ -62,6 +63,31 @@ function prepareMutationType(schema: GraphQLSchema, rules: Rules): GraphQLObject
   return newMutationType
 }
 
+function prepareSubscriptionType(schema: GraphQLSchema, rules: Rules): GraphQLObjectType | undefined {
+  const type = schema.getSubscriptionType()
+
+  if (!type) {
+    return
+  }
+
+  const fields = { ...type.getFields() }
+  Object.keys(fields).forEach(fieldName => transformField(fields, fieldName, rules[fieldName]))
+
+  if (Object.keys(fields).length === 0) {
+    return
+  }
+
+  const newSubscriptionType = new GraphQLObjectType({
+    name: type.name,
+    description: type.description,
+    isTypeOf: type.isTypeOf,
+    fields: fieldMapToFieldConfigMapForsubscribe(fields),
+    interfaces: type.getInterfaces(),
+  })
+
+  return newSubscriptionType
+}
+
 function transformField(fields: GraphQLFieldMap<any, any>,
   fieldName: string,
   rule: Rule,
@@ -81,7 +107,8 @@ function transformField(fields: GraphQLFieldMap<any, any>,
 function prepareRules(rules: Rules, schema: GraphQLSchema): Rules {
   const queryFields = schema.getQueryType().getFields()
   const mutationFields = schema.getMutationType() ? schema.getMutationType()!.getFields() : {}
-  const allFields = { ...queryFields, ...mutationFields }
+  const subscriptionFields = schema.getSubscriptionType() ? schema.getSubscriptionType()!.getFields() : {}
+  const allFields = { ...queryFields, ...mutationFields, ...subscriptionFields }
   const allFieldNames = Object.keys(allFields)
 
   // warning for inexisting fields

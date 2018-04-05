@@ -12,6 +12,22 @@ import {
 /*
 * Based on graphql-tools 
 */
+
+export function fieldMapToFieldConfigMapForsubscribe(fields: GraphQLFieldMap<any, any>): GraphQLFieldConfigMap<any, any> {
+  return _.mapValues(fields, field => fieldToFieldConfigForsubscribe(field));
+}
+
+function fieldToFieldConfigForsubscribe(field: GraphQLField<any, any>): GraphQLFieldConfig<any, any> {
+  return {
+    type: field.type,
+    args: argsToFieldConfigArgumentMap(field.args), 
+    subscribe: field.subscribe,
+    description: field.description,
+    deprecationReason: field.deprecationReason,
+  };
+}
+
+
 export function fieldMapToFieldConfigMap(fields: GraphQLFieldMap<any, any>): GraphQLFieldConfigMap<any, any> {
   return _.mapValues(fields, field => fieldToFieldConfig(field));
 }
@@ -19,7 +35,7 @@ export function fieldMapToFieldConfigMap(fields: GraphQLFieldMap<any, any>): Gra
 function fieldToFieldConfig(field: GraphQLField<any, any>): GraphQLFieldConfig<any, any> {
   return {
     type: field.type,
-    args: argsToFieldConfigArgumentMap(field.args),
+    args: argsToFieldConfigArgumentMap(field.args), 
     resolve: field.resolve,
     description: field.description,
     deprecationReason: field.deprecationReason,
